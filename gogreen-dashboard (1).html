@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoGreen – Smart Farm Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-void: #f4f8f5;
+  --bg-card: #ffffff;
+  --bg-card-2: #f0f7f2;
+  --border: rgba(34,197,94,0.18);
+  --border-hi: rgba(34,197,94,0.4);
+  --green: #16a34a;
+  --green2: #15803d;
+  --green-m: rgba(34,197,94,0.1);
+  --teal: #0d9488;
+  --amber: #d97706;
+  --red: #dc2626;
+  --blue: #0284c7;
+  --purple: #7c3aed;
+  --t1: #0f2418;
+  --t2: #2d6a42;
+  --t3: #6b9e7a;
+  --sw: 230px;
+  --r: 14px;
+  --rs: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg-void);color:var(--t1);min-height:100vh;display:flex;overflow-x:hidden}
+
+/* SIDEBAR */
+.sb{width:var(--sw);background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.logo{padding:22px 18px 18px;border-bottom:1px solid var(--border)}
+.logo-mk{display:flex;align-items:center;gap:10px}
+.logo-ic{width:36px;height:36px;background:linear-gradient(135deg,#166534,#22c55e);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 18px rgba(34,197,94,.22)}
+.logo-tx{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.5px;color:var(--green2)}
+.logo-s{font-size:10px;color:var(--t3);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.nav{padding:16px 10px 8px;flex:1;overflow-y:auto}
+.nl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--t3);padding:0 8px;margin-bottom:5px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--rs);cursor:pointer;color:var(--t2);font-size:13.5px;font-weight:500;transition:all .15s;margin-bottom:2px;position:relative;border:1px solid transparent}
+.ni:hover{background:var(--green-m);color:var(--green)}
+.ni.active{background:var(--green-m);color:var(--green);border-color:rgba(22,163,74,.2)}
+.ni.active::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:3px;border-radius:2px;background:var(--green)}
+.ni-ic{font-size:15px;width:20px;text-align:center}
+.ni-bd{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:1px 6px;border-radius:20px}
+.ng{height:12px}
+.sbf{padding:13px 14px;border-top:1px solid var(--border)}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pa 2s ease-in-out infinite;display:inline-block}
+@keyframes pa{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.6;box-shadow:0 0 16px var(--green)}}
+
+/* MAIN */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;padding:13px 24px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;gap:12px}
+.pt{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--t1)}
+.ps{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:1px}
+.tbr{margin-left:auto;display:flex;align-items:center;gap:11px}
+.lp{display:flex;align-items:center;gap:6px;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.25);border-radius:20px;padding:4px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--green)}
+.ld{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pa 1.5s ease-in-out infinite}
+.td{font-family:'DM Mono',monospace;font-size:12px;color:var(--t2)}
+.bw{position:relative;font-size:17px;cursor:pointer}
+.bc{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace}
+
+/* PAGE SYSTEM */
+.pg{display:none;padding:22px 24px 40px;flex-direction:column;gap:20px}
+.pg.active{display:flex}
+
+/* SECTION HDR */
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.st{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--t1)}
+.sl{flex:1;height:1px;background:var(--border)}
+.stg{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);background:var(--bg-card);border:1px solid var(--border);padding:2px 8px;border-radius:20px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:17px;box-shadow:0 1px 4px rgba(0,0,0,.05),0 4px 16px rgba(34,197,94,.04)}
+
+/* SENSOR CARD */
+.sc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:15px;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:all .2s;position:relative;overflow:hidden}
+.sc:hover{border-color:var(--border-hi);transform:translateY(-1px);box-shadow:0 4px 18px rgba(34,197,94,.1)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc,#16a34a),transparent);opacity:.5}
+.sc.warn{--acc:#d97706;border-color:rgba(217,119,6,.22)}
+.sc.crit{--acc:#dc2626;border-color:rgba(220,38,38,.22)}
+.cl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
+.cic{font-size:16px}
+.cv{font-family:'Syne',sans-serif;font-size:29px;font-weight:800;letter-spacing:-1px;line-height:1}
+.cu{font-size:12px;color:var(--t2);margin-left:2px}
+.csub{margin-top:7px;display:flex;align-items:center;gap:6px}
+.ct{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(22,163,74,.1);color:var(--green)}
+.ct.down{background:rgba(220,38,38,.1);color:var(--red)}
+.ct.warn{background:rgba(217,119,6,.1);color:var(--amber)}
+.cb{margin-top:9px;height:3px;background:rgba(0,0,0,.06);border-radius:2px;overflow:hidden}
+.cf{height:100%;border-radius:2px;background:var(--green);transition:width .8s cubic-bezier(.4,0,.2,1)}
+.cf.warn{background:var(--amber)}.cf.crit{background:var(--red)}
+.vc{animation:fg .4s ease}
+@keyframes fg{0%{color:var(--green)}100%{color:var(--t1)}}
+
+/* CHART */
+.cc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:17px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.chdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px}
+.ctx{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1)}
+.csx{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:2px}
+.lb{font-family:'DM Mono',monospace;font-size:10px;color:var(--green);background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);padding:3px 10px;border-radius:20px}
+.h160{position:relative;height:160px}
+.h200{position:relative;height:200px}
+.h220{position:relative;height:220px}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g21{display:grid;grid-template-columns:2fr 1.1fr;gap:13px}
+.col{display:flex;flex-direction:column;gap:13px}
+
+/* STAT */
+.stc{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.slb{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);font-family:'DM Mono',monospace;margin-bottom:7px}
+.sv{font-family:'Syne',sans-serif;font-size:25px;font-weight:800;color:var(--t1);line-height:1}
+.ss{font-size:11px;color:var(--t2);margin-top:4px}
+
+/* STATUS CHIP */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:20px;border:1px solid;font-weight:600}
+.chip.ok{color:var(--green);border-color:rgba(22,163,74,.3);background:rgba(22,163,74,.08)}
+.chip.wa{color:var(--amber);border-color:rgba(217,119,6,.3);background:rgba(217,119,6,.08)}
+.chip.cr{color:var(--red);border-color:rgba(220,38,38,.3);background:rgba(220,38,38,.08)}
+.cdot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* CONTROL */
+.cr-row{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--bg-card-2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:7px;transition:border-color .2s}
+.cr-row:last-child{margin-bottom:0}
+.cr-row:hover{border-color:var(--border-hi)}
+.cn{font-size:13px;font-weight:600;color:var(--t1)}.cs{font-size:10px;font-family:'DM Mono',monospace;color:var(--t3);margin-top:1px}
+.tgl{position:relative;width:42px;height:22px;cursor:pointer}
+.tgl input{display:none}
+.ttr{width:100%;height:100%;background:rgba(0,0,0,.1);border-radius:11px;border:1px solid rgba(0,0,0,.12);position:relative;transition:all .25s}
+.tgl input:checked~.ttr{background:rgba(22,163,74,.2);border-color:var(--green)}
+.tth{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#b0bec5;border-radius:50%;transition:left .25s,background .25s}
+.tgl input:checked~.ttr .tth{left:22px;background:var(--green)}
+
+/* NOTIF */
+.ni-item{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:var(--rs);border:1px solid;margin-bottom:7px;animation:si .35s ease}
+.ni-item:last-child{margin-bottom:0}
+@keyframes si{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+.ni-item.info{background:rgba(2,132,199,.04);border-color:rgba(2,132,199,.15)}
+.ni-item.warn{background:rgba(217,119,6,.04);border-color:rgba(217,119,6,.15)}
+.ni-item.danger{background:rgba(220,38,38,.04);border-color:rgba(220,38,38,.15)}
+.ni-item.success{background:rgba(22,163,74,.04);border-color:rgba(22,163,74,.15)}
+.ni-ic{font-size:15px;margin-top:1px}
+.nb{flex:1}
+.ntit{font-size:13px;font-weight:600;color:var(--t1)}
+.nmsg{font-size:11px;color:var(--t2);margin-top:2px}
+.ntm{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);white-space:nowrap}
+
+/* OV GRID */
+.og{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.oi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:15px;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:all .2s}
+.oi:hover{border-color:var(--border-hi);box-shadow:0 4px 14px rgba(34,197,94,.1)}
+
+/* TABLE */
+.tr{display:flex;align-items:center;padding:10px 13px;border-bottom:1px solid var(--border);font-size:13px}
+.tr:last-child{border-bottom:none}
+.tt{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);width:80px}
+.tn{flex:1;color:var(--t1);font-weight:500}
+
+/* REPORT ROW */
+.rr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.rr:last-child{border-bottom:none}
+.rl{font-size:13px;color:var(--t2)}
+.rv{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--t1)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#f0f7f2}
+::-webkit-scrollbar-thumb{background:#a7d4b5;border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ═══════════════════════════════════════════ -->
+<aside class="sb">
+  <div class="logo">
+    <div class="logo-mk">
+      <div class="logo-ic">🌿</div>
+      <div><div class="logo-tx">GoGreen</div><div class="logo-s">Smart Farm OS · v2.4.1</div></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nl">Overview</div>
+    <div class="ni active" onclick="go('dashboard',this)"><span class="ni-ic">⬡</span>Dashboard</div>
+    <div class="ni" onclick="go('sensors',this)"><span class="ni-ic">📡</span>Sensors</div>
+    <div class="ni" onclick="go('analytics',this)"><span class="ni-ic">📈</span>Analytics</div>
+    <div class="ng"></div>
+    <div class="nl">Systems</div>
+    <div class="ni" onclick="go('hydro',this)"><span class="ni-ic">💧</span>Hydroponics</div>
+    <div class="ni" onclick="go('aqua',this)"><span class="ni-ic">🐟</span>Aquaponics</div>
+    <div class="ni" onclick="go('climate',this)"><span class="ni-ic">🌡️</span>Climate Control</div>
+    <div class="ni" onclick="go('lighting',this)"><span class="ni-ic">💡</span>Lighting</div>
+    <div class="ng"></div>
+    <div class="nl">Management</div>
+    <div class="ni" onclick="go('alerts',this)"><span class="ni-ic">🔔</span>Alerts<span class="ni-bd" id="bdg">3</span></div>
+    <div class="ni" onclick="go('reports',this)"><span class="ni-ic">📋</span>Reports</div>
+    <div class="ni" onclick="go('settings',this)"><span class="ni-ic">⚙️</span>Settings</div>
+  </nav>
+  <div class="sbf">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)"><span class="pdot"></span>All Systems Online</div>
+    <div style="margin-top:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--t3)">Farm ID: GG-ZA-0042 · Durban</div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ═══════════════════════════════════════════════ -->
+<main class="main">
+<header class="topbar">
+  <div><div class="pt" id="ttl">Farm Dashboard</div><div class="ps" id="tsb">Real-time monitoring · Hydroponics & Aquaponics</div></div>
+  <div class="tbr">
+    <div class="lp"><div class="ld"></div>LIVE</div>
+    <div class="td" id="clk">--:--:--</div>
+    <div class="bw" onclick="go('alerts',document.querySelectorAll('.ni')[7])">🔔<div class="bc">3</div></div>
+  </div>
+</header>
+
+<!-- ═══════════ PAGE: DASHBOARD ═══════════════════════════ -->
+<div class="pg active" id="pg-dashboard">
+  <div>
+    <div class="sh"><div class="st">Live Sensor Readings</div><div class="sl"></div><div class="stg">8 SENSORS</div></div>
+    <div class="g4" style="grid-template-columns:repeat(4,1fr)">
+      <div class="sc" id="c-wtemp"><div class="ctop"><div class="cl">Water Temp</div><div class="cic">🌊</div></div><div><span class="cv" id="v-wtemp">22.4</span><span class="cu">°C</span></div><div class="csub"><span class="ct" id="t-wtemp">→</span><span style="font-size:10px;color:var(--t3)">Opt: 20–26°C</span></div><div class="cb"><div class="cf" id="b-wtemp" style="width:60%"></div></div></div>
+      <div class="sc" id="c-ph"><div class="ctop"><div class="cl">pH Level</div><div class="cic">🧪</div></div><div><span class="cv" id="v-ph">6.8</span><span class="cu">pH</span></div><div class="csub"><span class="ct" id="t-ph">→</span><span style="font-size:10px;color:var(--t3)">Opt: 5.5–7.0</span></div><div class="cb"><div class="cf" id="b-ph" style="width:75%"></div></div></div>
+      <div class="sc" id="c-ec"><div class="ctop"><div class="cl">Conductivity</div><div class="cic">⚡</div></div><div><span class="cv" id="v-ec">2.1</span><span class="cu">mS/cm</span></div><div class="csub"><span class="ct" id="t-ec">↑</span><span style="font-size:10px;color:var(--t3)">Opt: 1.5–2.5</span></div><div class="cb"><div class="cf" id="b-ec" style="width:55%"></div></div></div>
+      <div class="sc" id="c-wlvl"><div class="ctop"><div class="cl">Water Level</div><div class="cic">🪣</div></div><div><span class="cv" id="v-wlvl">73</span><span class="cu">%</span></div><div class="csub"><span class="ct warn" id="t-wlvl">↓</span><span style="font-size:10px;color:var(--t3)">Min: 40%</span></div><div class="cb"><div class="cf" id="b-wlvl" style="width:73%"></div></div></div>
+      <div class="sc" id="c-atemp"><div class="ctop"><div class="cl">Air Temperature</div><div class="cic">🌡️</div></div><div><span class="cv" id="v-atemp">28.3</span><span class="cu">°C</span></div><div class="csub"><span class="ct" id="t-atemp">↑</span><span style="font-size:10px;color:var(--t3)">Opt: 22–30°C</span></div><div class="cb"><div class="cf" id="b-atemp" style="width:70%"></div></div></div>
+      <div class="sc" id="c-hum"><div class="ctop"><div class="cl">Humidity</div><div class="cic">💨</div></div><div><span class="cv" id="v-hum">67</span><span class="cu">%RH</span></div><div class="csub"><span class="ct" id="t-hum">→</span><span style="font-size:10px;color:var(--t3)">Opt: 60–80%</span></div><div class="cb"><div class="cf" id="b-hum" style="width:67%"></div></div></div>
+      <div class="sc" id="c-do2"><div class="ctop"><div class="cl">Dissolved O₂</div><div class="cic">🐟</div></div><div><span class="cv" id="v-do2">7.4</span><span class="cu">mg/L</span></div><div class="csub"><span class="ct" id="t-do2">↑</span><span style="font-size:10px;color:var(--t3)">Min: 6.0</span></div><div class="cb"><div class="cf" id="b-do2" style="width:74%"></div></div></div>
+      <div class="sc" id="c-ppm"><div class="ctop"><div class="cl">Nutrient PPM</div><div class="cic">🌱</div></div><div><span class="cv" id="v-ppm">840</span><span class="cu">ppm</span></div><div class="csub"><span class="ct" id="t-ppm">↑</span><span style="font-size:10px;color:var(--t3)">Opt: 700–1100</span></div><div class="cb"><div class="cf" id="b-ppm" style="width:65%"></div></div></div>
+    </div>
+  </div>
+  <div class="g21">
+    <div class="col">
+      <div class="cc"><div class="chdr"><div><div class="ctx">pH Level Trend</div><div class="csx">Last 20 readings</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="d-ph"></canvas></div></div>
+      <div class="cc"><div class="chdr"><div><div class="ctx">Air Temperature & Humidity</div><div class="csx">Climate zone monitoring</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="d-cl"></canvas></div></div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="sh" style="margin-bottom:11px"><div class="st">System Controls</div><div class="sl"></div></div>
+        <div class="cr-row"><div style="font-size:17px">💧</div><div style="flex:1"><div class="cn">Main Water Pump</div><div class="cs" id="st-pump">RUNNING · 3.2 L/min</div></div><label class="tgl"><input type="checkbox" checked onchange="tc(this,'pump')"><div class="ttr"><div class="tth"></div></div></label></div>
+        <div class="cr-row"><div style="font-size:17px">💡</div><div style="flex:1"><div class="cn">Grow Lights</div><div class="cs" id="st-lights">ON · 18h cycle · 480W</div></div><label class="tgl"><input type="checkbox" checked onchange="tc(this,'lights')"><div class="ttr"><div class="tth"></div></div></label></div>
+        <div class="cr-row"><div style="font-size:17px">🧪</div><div style="flex:1"><div class="cn">Nutrient Pump</div><div class="cs" id="st-nutrient">DOSING · 15ml/hr</div></div><label class="tgl"><input type="checkbox" checked onchange="tc(this,'nutrient')"><div class="ttr"><div class="tth"></div></div></label></div>
+        <div class="cr-row"><div style="font-size:17px">🔄</div><div style="flex:1"><div class="cn">Circulation</div><div class="cs" id="st-circ">ACTIVE · 1200 RPM</div></div><label class="tgl"><input type="checkbox" checked onchange="tc(this,'circ')"><div class="ttr"><div class="tth"></div></div></label></div>
+        <div class="cr-row" style="margin-bottom:0"><div style="font-size:17px">❄️</div><div style="flex:1"><div class="cn">Climate Fan</div><div class="cs" id="st-fan">ON · LOW speed</div></div><label class="tgl"><input type="checkbox" checked onchange="tc(this,'fan')"><div class="ttr"><div class="tth"></div></div></label></div>
+      </div>
+      <div class="card">
+        <div class="sh" style="margin-bottom:11px"><div class="st">Alerts</div><div class="sl"></div><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--red);background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);padding:2px 8px;border-radius:20px">3 ACTIVE</div></div>
+        <div id="d-notif"></div>
+      </div>
+    </div>
+  </div>
+  <div class="cc"><div class="chdr"><div><div class="ctx">Water Temperature Trend</div><div class="csx">Hydroponic & fish tank · Last 20 readings</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="d-wt"></canvas></div></div>
+  <div>
+    <div class="sh"><div class="st">Farm Overview</div><div class="sl"></div><div class="stg">ZONE A</div></div>
+    <div class="og">
+      <div class="oi"><div class="cl">Plants Monitored</div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:5px">247</div><div style="font-size:11px;color:var(--t2);margin-top:3px">Lettuce · Basil · Spinach</div></div>
+      <div class="oi"><div class="cl">Fish Tank</div><div style="margin-top:8px"><span class="chip ok"><span class="cdot"></span>HEALTHY</span></div><div style="font-size:11px;color:var(--t2);margin-top:4px">Tilapia · 84 fish</div></div>
+      <div class="oi"><div class="cl">Water Tank</div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:5px"><span id="ov-tank">73</span><span style="font-size:13px;color:var(--t2)">% / 2000L</span></div><div style="font-size:11px;color:var(--t2);margin-top:3px">Refill est. in 2 days</div></div>
+      <div class="oi"><div class="cl">System Health</div><div style="margin-top:8px"><span class="chip wa" id="ov-hlth"><span class="cdot"></span>WARNING</span></div><div style="font-size:11px;color:var(--t2);margin-top:4px">Low water · Check tank</div></div>
+      <div class="oi"><div class="cl">Grow Cycles</div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:5px">3</div><div style="font-size:11px;color:var(--t2);margin-top:3px">Cycle 7 · Day 12 of 28</div></div>
+      <div class="oi"><div class="cl">Harvest Estimate</div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:5px">4.2<span style="font-size:13px;color:var(--t2)"> kg</span></div><div style="font-size:11px;color:var(--t2);margin-top:3px">↑ 8% vs last cycle</div></div>
+      <div class="oi"><div class="cl">Energy Today</div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:5px">12.4<span style="font-size:13px;color:var(--t2)"> kWh</span></div><div style="font-size:11px;color:var(--t2);margin-top:3px">↓ 5% efficiency gain</div></div>
+      <div class="oi"><div class="cl">Uptime</div><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:5px">99.8<span style="font-size:13px;color:var(--t2)">%</span></div><div style="font-size:11px;color:var(--t2);margin-top:3px">30-day average</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: SENSORS ══════════════════════════════ -->
+<div class="pg" id="pg-sensors">
+  <div>
+    <div class="sh"><div class="st">All Sensor Readings</div><div class="sl"></div><div class="stg">LIVE · 8 SENSORS</div></div>
+    <div class="g4" style="grid-template-columns:repeat(4,1fr)">
+      <div class="sc" id="s-c-wtemp"><div class="ctop"><div class="cl">Water Temp</div><div class="cic">🌊</div></div><div><span class="cv" id="s-v-wtemp">22.4</span><span class="cu">°C</span></div><div class="csub"><span class="ct" id="s-t-wtemp">→</span><span style="font-size:10px;color:var(--t3)">Opt: 20–26°C</span></div><div class="cb"><div class="cf" id="s-b-wtemp" style="width:60%"></div></div></div>
+      <div class="sc" id="s-c-ph"><div class="ctop"><div class="cl">pH Level</div><div class="cic">🧪</div></div><div><span class="cv" id="s-v-ph">6.8</span><span class="cu">pH</span></div><div class="csub"><span class="ct" id="s-t-ph">→</span><span style="font-size:10px;color:var(--t3)">Opt: 5.5–7.0</span></div><div class="cb"><div class="cf" id="s-b-ph" style="width:75%"></div></div></div>
+      <div class="sc" id="s-c-ec"><div class="ctop"><div class="cl">Conductivity</div><div class="cic">⚡</div></div><div><span class="cv" id="s-v-ec">2.1</span><span class="cu">mS/cm</span></div><div class="csub"><span class="ct" id="s-t-ec">↑</span><span style="font-size:10px;color:var(--t3)">Opt: 1.5–2.5</span></div><div class="cb"><div class="cf" id="s-b-ec" style="width:55%"></div></div></div>
+      <div class="sc" id="s-c-wlvl"><div class="ctop"><div class="cl">Water Level</div><div class="cic">🪣</div></div><div><span class="cv" id="s-v-wlvl">73</span><span class="cu">%</span></div><div class="csub"><span class="ct warn" id="s-t-wlvl">↓</span><span style="font-size:10px;color:var(--t3)">Min: 40%</span></div><div class="cb"><div class="cf" id="s-b-wlvl" style="width:73%"></div></div></div>
+      <div class="sc" id="s-c-atemp"><div class="ctop"><div class="cl">Air Temperature</div><div class="cic">🌡️</div></div><div><span class="cv" id="s-v-atemp">28.3</span><span class="cu">°C</span></div><div class="csub"><span class="ct" id="s-t-atemp">↑</span><span style="font-size:10px;color:var(--t3)">Opt: 22–30°C</span></div><div class="cb"><div class="cf" id="s-b-atemp" style="width:70%"></div></div></div>
+      <div class="sc" id="s-c-hum"><div class="ctop"><div class="cl">Humidity</div><div class="cic">💨</div></div><div><span class="cv" id="s-v-hum">67</span><span class="cu">%RH</span></div><div class="csub"><span class="ct" id="s-t-hum">→</span><span style="font-size:10px;color:var(--t3)">Opt: 60–80%</span></div><div class="cb"><div class="cf" id="s-b-hum" style="width:67%"></div></div></div>
+      <div class="sc" id="s-c-do2"><div class="ctop"><div class="cl">Dissolved O₂</div><div class="cic">🐟</div></div><div><span class="cv" id="s-v-do2">7.4</span><span class="cu">mg/L</span></div><div class="csub"><span class="ct" id="s-t-do2">↑</span><span style="font-size:10px;color:var(--t3)">Min: 6.0</span></div><div class="cb"><div class="cf" id="s-b-do2" style="width:74%"></div></div></div>
+      <div class="sc" id="s-c-ppm"><div class="ctop"><div class="cl">Nutrient PPM</div><div class="cic">🌱</div></div><div><span class="cv" id="s-v-ppm">840</span><span class="cu">ppm</span></div><div class="csub"><span class="ct" id="s-t-ppm">↑</span><span style="font-size:10px;color:var(--t3)">Opt: 700–1100</span></div><div class="cb"><div class="cf" id="s-b-ppm" style="width:65%"></div></div></div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="cc"><div class="chdr"><div><div class="ctx">pH Trend</div><div class="csx">Live stream</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="s-ph"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">EC Trend</div><div class="csx">Live stream</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="s-ec"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Water Level</div><div class="csx">Tank A live</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="s-wl"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">Water & Air Temperature</div><div class="csx">Dual sensor overlay</div></div><div class="lb">LIVE</div></div><div class="h200"><canvas id="s-tmp"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">DO₂ & Humidity</div><div class="csx">Environment sensors</div></div><div class="lb">LIVE</div></div><div class="h200"><canvas id="s-env"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: ANALYTICS ════════════════════════════ -->
+<div class="pg" id="pg-analytics">
+  <div class="g4">
+    <div class="stc"><div class="slb">Weekly Yield</div><div class="sv">28.4<span style="font-size:14px;color:var(--t2)"> kg</span></div><div class="ss">↑ 12% vs last week</div></div>
+    <div class="stc"><div class="slb">Avg pH This Week</div><div class="sv">6.7</div><div class="ss">Within optimal range</div></div>
+    <div class="stc"><div class="slb">Water Used</div><div class="sv">480<span style="font-size:14px;color:var(--t2)"> L</span></div><div class="ss">↓ 8% vs last week</div></div>
+    <div class="stc"><div class="slb">Energy This Week</div><div class="sv">86.2<span style="font-size:14px;color:var(--t2)"> kWh</span></div><div class="ss">↓ 4% efficiency gain</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">Weekly Harvest (kg)</div><div class="csx">Yield per day this week</div></div></div><div class="h200"><canvas id="a-yld"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Daily Energy Consumption</div><div class="csx">kWh per day this week</div></div></div><div class="h200"><canvas id="a-nrg"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">pH Daily Average</div><div class="csx">7-day trend</div></div><div class="lb">LIVE</div></div><div class="h200"><canvas id="a-ph"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Nutrient PPM – Weekly</div><div class="csx">Dissolved nutrients</div></div><div class="lb">LIVE</div></div><div class="h200"><canvas id="a-ppm"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: HYDROPONICS ══════════════════════════ -->
+<div class="pg" id="pg-hydro">
+  <div class="g4">
+    <div class="stc"><div class="slb">pH Level</div><div class="sv"><span id="h-ph">6.8</span><span style="font-size:14px;color:var(--t2)"> pH</span></div><div class="ss">Optimal: 5.5–7.0</div></div>
+    <div class="stc"><div class="slb">EC Level</div><div class="sv"><span id="h-ec">2.1</span><span style="font-size:14px;color:var(--t2)"> mS/cm</span></div><div class="ss">Optimal: 1.5–2.5</div></div>
+    <div class="stc"><div class="slb">Nutrient PPM</div><div class="sv"><span id="h-ppm">840</span><span style="font-size:14px;color:var(--t2)"> ppm</span></div><div class="ss">Optimal: 700–1100</div></div>
+    <div class="stc"><div class="slb">Water Temp</div><div class="sv"><span id="h-wt">22.4</span><span style="font-size:14px;color:var(--t2)">°C</span></div><div class="ss">Optimal: 20–26°C</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">pH Level – Live</div><div class="csx">Hydroponic solution</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="hy-ph"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">EC & Nutrient PPM</div><div class="csx">Nutrient solution strength</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="hy-ec"></canvas></div></div>
+  </div>
+  <div class="cc"><div class="chdr"><div><div class="ctx">Water Temperature – Hydroponic Reservoir</div><div class="csx">Real-time thermal monitoring</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="hy-wt"></canvas></div></div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:11px"><div class="st">Grow Bed Status</div><div class="sl"></div></div>
+    <div class="g3">
+      <div class="stc"><div class="slb">Bed A – Lettuce</div><div class="sv">62</div><div class="ss">Plants · Day 14 of 28</div></div>
+      <div class="stc"><div class="slb">Bed B – Basil</div><div class="sv">45</div><div class="ss">Plants · Day 9 of 21</div></div>
+      <div class="stc"><div class="slb">Bed C – Spinach</div><div class="sv">80</div><div class="ss">Plants · Day 20 of 35</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: AQUAPONICS ═══════════════════════════ -->
+<div class="pg" id="pg-aqua">
+  <div class="g4">
+    <div class="stc"><div class="slb">Dissolved O₂</div><div class="sv"><span id="aq-do">7.4</span><span style="font-size:14px;color:var(--t2)"> mg/L</span></div><div class="ss">Min safe: 6.0 mg/L</div></div>
+    <div class="stc"><div class="slb">Fish Tank Temp</div><div class="sv"><span id="aq-tp">22.4</span><span style="font-size:14px;color:var(--t2)">°C</span></div><div class="ss">Tilapia: 20–28°C</div></div>
+    <div class="stc"><div class="slb">Ammonia (NH₃)</div><div class="sv">0.2<span style="font-size:14px;color:var(--t2)"> ppm</span></div><div class="ss">Safe: &lt;0.5 ppm</div></div>
+    <div class="stc"><div class="slb">Fish Count</div><div class="sv">84</div><div class="ss">Tilapia · Tank A</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">Dissolved Oxygen – Live</div><div class="csx">Fish tank oxygenation</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="aq-do2"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Tank Water Temperature</div><div class="csx">Fish tank thermal monitoring</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="aq-tmp"></canvas></div></div>
+  </div>
+  <div class="cc"><div class="chdr"><div><div class="ctx">pH & Ammonia Levels</div><div class="csx">Water chemistry – aquaponics loop</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="aq-ch"></canvas></div></div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:11px"><div class="st">Aquaponics System Status</div><div class="sl"></div></div>
+    <div class="g3">
+      <div class="stc"><div class="slb">Fish Tank</div><div style="margin-top:8px"><span class="chip ok"><span class="cdot"></span>HEALTHY</span></div><div class="ss">All parameters nominal</div></div>
+      <div class="stc"><div class="slb">Biofilter</div><div style="margin-top:8px"><span class="chip ok"><span class="cdot"></span>ACTIVE</span></div><div class="ss">Nitrification stable</div></div>
+      <div class="stc"><div class="slb">Next Feeding</div><div class="sv" style="font-size:18px;margin-top:6px">14:30</div><div class="ss">3× daily · 200g per feed</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: CLIMATE ═══════════════════════════════ -->
+<div class="pg" id="pg-climate">
+  <div class="g4">
+    <div class="stc"><div class="slb">Air Temperature</div><div class="sv"><span id="cl-at">28.3</span><span style="font-size:14px;color:var(--t2)">°C</span></div><div class="ss">Target: 22–30°C</div></div>
+    <div class="stc"><div class="slb">Humidity</div><div class="sv"><span id="cl-hm">67</span><span style="font-size:14px;color:var(--t2)">%</span></div><div class="ss">Target: 60–80%</div></div>
+    <div class="stc"><div class="slb">CO₂ Level</div><div class="sv">820<span style="font-size:14px;color:var(--t2)"> ppm</span></div><div class="ss">Optimal: 800–1200</div></div>
+    <div class="stc"><div class="slb">VPD</div><div class="sv">1.4<span style="font-size:14px;color:var(--t2)"> kPa</span></div><div class="ss">Optimal: 0.8–1.6 kPa</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">Air Temperature – Live</div><div class="csx">Grow room thermal profile</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="cl-at2"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Humidity – Live</div><div class="csx">Relative humidity monitoring</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="cl-hm2"></canvas></div></div>
+  </div>
+  <div class="cc"><div class="chdr"><div><div class="ctx">Temperature & Humidity Overlay</div><div class="csx">Combined climate view</div></div><div class="lb">LIVE</div></div><div class="h160"><canvas id="cl-cb"></canvas></div></div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:11px"><div class="st">Climate Controls</div><div class="sl"></div></div>
+    <div class="cr-row"><div style="font-size:17px">❄️</div><div style="flex:1"><div class="cn">Ventilation Fan</div><div class="cs">ON · LOW speed · 45% capacity</div></div><label class="tgl"><input type="checkbox" checked><div class="ttr"><div class="tth"></div></div></label></div>
+    <div class="cr-row"><div style="font-size:17px">🌬️</div><div style="flex:1"><div class="cn">Exhaust System</div><div class="cs">ACTIVE · 12 air changes/hr</div></div><label class="tgl"><input type="checkbox" checked><div class="ttr"><div class="tth"></div></div></label></div>
+    <div class="cr-row" style="margin-bottom:0"><div style="font-size:17px">💧</div><div style="flex:1"><div class="cn">Misting / Humidifier</div><div class="cs">STANDBY · Auto-trigger at 55%</div></div><label class="tgl"><input type="checkbox"><div class="ttr"><div class="tth"></div></div></label></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: LIGHTING ══════════════════════════════ -->
+<div class="pg" id="pg-lighting">
+  <div class="g4">
+    <div class="stc"><div class="slb">Current PPFD</div><div class="sv">480<span style="font-size:14px;color:var(--t2)"> μmol</span></div><div class="ss">Target: 400–600</div></div>
+    <div class="stc"><div class="slb">Photoperiod</div><div class="sv">18<span style="font-size:14px;color:var(--t2)">h ON</span></div><div class="ss">6h dark · Vegetative</div></div>
+    <div class="stc"><div class="slb">Total Wattage</div><div class="sv">960<span style="font-size:14px;color:var(--t2)"> W</span></div><div class="ss">2 × LED arrays</div></div>
+    <div class="stc"><div class="slb">Light Hours Today</div><div class="sv">11.2<span style="font-size:14px;color:var(--t2)">h</span></div><div class="ss">ON since 06:00</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">PPFD Intensity – Live</div><div class="csx">Light output monitoring</div></div><div class="lb">LIVE</div></div><div class="h220"><canvas id="lt-pf"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Daily Energy Usage</div><div class="csx">Lighting power this week</div></div></div><div class="h220"><canvas id="lt-en"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:11px"><div class="st">Lighting Schedule</div><div class="sl"></div></div>
+    <div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden">
+      <div class="tr" style="background:var(--bg-card-2);font-family:'DM Mono',monospace;font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em"><span class="tt">Time</span><span class="tn">Event</span><span style="font-family:'DM Mono',monospace;font-size:9px">Status</span></div>
+      <div class="tr"><span class="tt">06:00</span><span class="tn">Grow Lights ON – Arrays A & B</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ DONE</span></div>
+      <div class="tr"><span class="tt">09:00</span><span class="tn">Intensity ramp to 100%</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ DONE</span></div>
+      <div class="tr" style="background:rgba(22,163,74,.04)"><span class="tt">NOW</span><span class="tn" style="font-weight:600;color:var(--green)">Running at 100% — 480W active</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">● LIVE</span></div>
+      <div class="tr"><span class="tt">20:00</span><span class="tn">Intensity ramp down to 50%</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)">PENDING</span></div>
+      <div class="tr"><span class="tt">24:00</span><span class="tn">Grow Lights OFF – dark period begins</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)">PENDING</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: ALERTS ════════════════════════════════ -->
+<div class="pg" id="pg-alerts">
+  <div class="g3">
+    <div class="stc"><div class="slb">Active Alerts</div><div class="sv" style="color:var(--red)">3</div><div class="ss">Require attention</div></div>
+    <div class="stc"><div class="slb">Warnings Today</div><div class="sv" style="color:var(--amber)">5</div><div class="ss">2 auto-resolved</div></div>
+    <div class="stc"><div class="slb">Last 7 Days</div><div class="sv">12</div><div class="ss">9 resolved · 3 active</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">Alert Frequency – This Week</div><div class="csx">Alerts per day by severity</div></div></div><div class="h200"><canvas id="al-fr"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Alert Categories</div><div class="csx">Distribution by type</div></div></div><div class="h200"><canvas id="al-dn"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:13px"><div class="st">All Notifications</div><div class="sl"></div><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--red);background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);padding:2px 8px;border-radius:20px">3 ACTIVE</div></div>
+    <div id="al-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: REPORTS ═══════════════════════════════ -->
+<div class="pg" id="pg-reports">
+  <div class="g4">
+    <div class="stc"><div class="slb">Monthly Yield</div><div class="sv">112<span style="font-size:14px;color:var(--t2)"> kg</span></div><div class="ss">↑ 18% vs last month</div></div>
+    <div class="stc"><div class="slb">Water Efficiency</div><div class="sv">94<span style="font-size:14px;color:var(--t2)">%</span></div><div class="ss">vs traditional: +87%</div></div>
+    <div class="stc"><div class="slb">Monthly Energy</div><div class="sv">342<span style="font-size:14px;color:var(--t2)"> kWh</span></div><div class="ss">↓ 6% month-on-month</div></div>
+    <div class="stc"><div class="slb">System Uptime</div><div class="sv">99.8<span style="font-size:14px;color:var(--t2)">%</span></div><div class="ss">30-day average</div></div>
+  </div>
+  <div class="g2">
+    <div class="cc"><div class="chdr"><div><div class="ctx">Monthly Yield Trend</div><div class="csx">kg harvested per month</div></div></div><div class="h220"><canvas id="rp-yl"></canvas></div></div>
+    <div class="cc"><div class="chdr"><div><div class="ctx">Monthly Energy Usage</div><div class="csx">kWh consumed per month</div></div></div><div class="h220"><canvas id="rp-en"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:13px"><div class="st">Performance Summary – Current Month</div><div class="sl"></div></div>
+    <div class="rr"><span class="rl">Average pH Level</span><span class="rv">6.72 <span style="font-size:11px;color:var(--green);font-weight:500">✓ Optimal</span></span></div>
+    <div class="rr"><span class="rl">Average Water Temperature</span><span class="rv">22.8°C <span style="font-size:11px;color:var(--green);font-weight:500">✓ Optimal</span></span></div>
+    <div class="rr"><span class="rl">Average EC Level</span><span class="rv">2.05 mS/cm <span style="font-size:11px;color:var(--green);font-weight:500">✓ Optimal</span></span></div>
+    <div class="rr"><span class="rl">Average DO₂ (Fish Tank)</span><span class="rv">7.6 mg/L <span style="font-size:11px;color:var(--green);font-weight:500">✓ Optimal</span></span></div>
+    <div class="rr"><span class="rl">Water Volume Consumed</span><span class="rv">1,840 L</span></div>
+    <div class="rr"><span class="rl">Crop Cycles Completed</span><span class="rv">2 full cycles</span></div>
+    <div class="rr"><span class="rl">System Incidents</span><span class="rv">1 <span style="font-size:11px;color:var(--amber);font-weight:500">Minor – resolved</span></span></div>
+    <div class="rr"><span class="rl">Fish Mortality Rate</span><span class="rv">0% <span style="font-size:11px;color:var(--green);font-weight:500">✓ Excellent</span></span></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: SETTINGS ══════════════════════════════ -->
+<div class="pg" id="pg-settings">
+  <div class="g2">
+    <div class="card">
+      <div class="sh" style="margin-bottom:13px"><div class="st">System Configuration</div><div class="sl"></div></div>
+      <div class="rr"><span class="rl">Farm ID</span><span class="rv" style="font-family:'DM Mono',monospace;font-size:13px">GG-ZA-0042</span></div>
+      <div class="rr"><span class="rl">Location</span><span class="rv" style="font-size:13px">Durban, KwaZulu-Natal</span></div>
+      <div class="rr"><span class="rl">System Version</span><span class="rv" style="font-family:'DM Mono',monospace;font-size:13px">v2.4.1</span></div>
+      <div class="rr"><span class="rl">Sensor Update Rate</span><span class="rv" style="font-size:13px">3.5 seconds</span></div>
+      <div class="rr"><span class="rl">Data Retention</span><span class="rv" style="font-size:13px">90 days</span></div>
+      <div class="rr"><span class="rl">Alert Email</span><span class="rv" style="font-size:13px">admin@gogreen.co.za</span></div>
+    </div>
+    <div class="card">
+      <div class="sh" style="margin-bottom:13px"><div class="st">Alert Thresholds</div><div class="sl"></div></div>
+      <div class="rr"><span class="rl">pH Min / Max</span><span class="rv" style="font-size:13px">5.5 / 7.0</span></div>
+      <div class="rr"><span class="rl">Water Temp Min / Max</span><span class="rv" style="font-size:13px">20°C / 26°C</span></div>
+      <div class="rr"><span class="rl">EC Min / Max</span><span class="rv" style="font-size:13px">1.5 / 2.5 mS/cm</span></div>
+      <div class="rr"><span class="rl">DO₂ Minimum</span><span class="rv" style="font-size:13px">6.0 mg/L</span></div>
+      <div class="rr"><span class="rl">Water Level Minimum</span><span class="rv" style="font-size:13px">40%</span></div>
+      <div class="rr"><span class="rl">Humidity Range</span><span class="rv" style="font-size:13px">60% – 80%</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sh" style="margin-bottom:13px"><div class="st">Automation Settings</div><div class="sl"></div></div>
+    <div class="cr-row"><div style="font-size:17px">🤖</div><div style="flex:1"><div class="cn">Auto pH Dosing</div><div class="cs">Activate acid/base when pH drifts ±0.3</div></div><label class="tgl"><input type="checkbox" checked><div class="ttr"><div class="tth"></div></div></label></div>
+    <div class="cr-row"><div style="font-size:17px">💧</div><div style="flex:1"><div class="cn">Auto Water Refill</div><div class="cs">Trigger refill pump when tank drops below 40%</div></div><label class="tgl"><input type="checkbox" checked><div class="ttr"><div class="tth"></div></div></label></div>
+    <div class="cr-row"><div style="font-size:17px">🔔</div><div style="flex:1"><div class="cn">Push Notifications</div><div class="cs">Send alerts when sensor thresholds are exceeded</div></div><label class="tgl"><input type="checkbox" checked><div class="ttr"><div class="tth"></div></div></label></div>
+    <div class="cr-row" style="margin-bottom:0"><div style="font-size:17px">📊</div><div style="flex:1"><div class="cn">Auto Weekly Reports</div><div class="cs">Email performance summary every Monday</div></div><label class="tgl"><input type="checkbox" checked><div class="ttr"><div class="tth"></div></div></label></div>
+  </div>
+</div>
+
+</main>
+<script>
+// NAV
+const meta={dashboard:['Farm Dashboard','Real-time monitoring · Hydroponics & Aquaponics'],sensors:['Sensor Readings','All live sensor data · 8 active sensors'],analytics:['Analytics','Performance metrics & trends'],hydro:['Hydroponics System','Nutrient solution & crop monitoring'],aqua:['Aquaponics System','Fish tank & water quality'],climate:['Climate Control','Air temperature, humidity & CO₂'],lighting:['Lighting System','Grow light schedules & intensity'],alerts:['Alerts & Notifications','System events & warnings'],reports:['Reports','Performance summaries'],settings:['Settings','System configuration & thresholds']};
+function go(id,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  const m=meta[id]; if(m){document.getElementById('ttl').textContent=m[0];document.getElementById('tsb').textContent=m[1];}
+}
+
+// CLOCK
+setInterval(()=>{document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-ZA',{hour12:false})},1000);
+
+// SENSORS
+const S={
+  wtemp:{v:22.4,min:18,max:28,dec:1,oMin:20,oMax:26},
+  ph:   {v:6.8,min:4.5,max:8.5,dec:2,oMin:5.5,oMax:7.0},
+  ec:   {v:2.1,min:0.5,max:3.5,dec:2,oMin:1.5,oMax:2.5},
+  wlvl: {v:73,min:25,max:100,dec:0,oMin:40,oMax:100},
+  atemp:{v:28.3,min:18,max:36,dec:1,oMin:22,oMax:30},
+  hum:  {v:67,min:35,max:92,dec:0,oMin:60,oMax:80},
+  do2:  {v:7.4,min:4,max:12,dec:1,oMin:6,oMax:10},
+  ppm:  {v:840,min:400,max:1400,dec:0,oMin:700,oMax:1100},
+};
+const pv={};
+function drift(v,mn,mx){return Math.min(mx,Math.max(mn,v+(Math.random()-.48)*.04*(mx-mn)));}
+function st(v,s){if(v<s.oMin||v>s.oMax){const d=Math.min(Math.abs(v-s.oMin),Math.abs(v-s.oMax));return d>(s.oMax-s.oMin)*.15?'crit':'warn';}return 'ok';}
+function pct(v,s){return Math.round(((v-s.min)/(s.max-s.min))*100);}
+
+function updCard(pfx,k,s,prev){
+  const ve=document.getElementById(pfx+'v-'+k);
+  if(!ve)return;
+  const be=document.getElementById(pfx+'b-'+k);
+  const ce=document.getElementById(pfx+'c-'+k);
+  const te=document.getElementById(pfx+'t-'+k);
+  const r=s.v.toFixed(s.dec);
+  if(r!==(pv[pfx+k]||'')){ve.textContent=r;ve.classList.remove('vc');void ve.offsetWidth;ve.classList.add('vc');}
+  pv[pfx+k]=r;
+  const ss=st(s.v,s),p=pct(s.v,s);
+  if(be){be.style.width=p+'%';be.className='cf'+(ss==='warn'?' warn':ss==='crit'?' crit':'');}
+  if(ce){ce.className='sc'+(ss==='warn'?' warn':ss==='crit'?' crit':'');}
+  if(te){const d=s.v-prev,ar=d>.001?'↑':d<-.001?'↓':'→';te.textContent=ar;te.className='ct'+(ss==='warn'?' warn':ss==='crit'?' down':'');}
+}
+
+function updSensors(){
+  for(const[k,s]of Object.entries(S)){const prev=s.v;s.v=drift(s.v,s.min,s.max);updCard('',k,s,prev);updCard('s-',k,s,prev);}
+  const ids=[['h-ph','ph'],['h-ec','ec'],['h-ppm','ppm'],['h-wt','wtemp'],['aq-do','do2'],['aq-tp','wtemp'],['cl-at','atemp'],['cl-hm','hum']];
+  ids.forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.textContent=S[k].v.toFixed(S[k].dec);});
+  const ot=document.getElementById('ov-tank');if(ot)ot.textContent=S.wlvl.v.toFixed(0);
+  const all=Object.values(S).map(s=>st(s.v,s));
+  const hel=document.getElementById('ov-hlth');if(!hel)return;
+  if(all.includes('crit')){hel.className='chip cr';hel.innerHTML='<span class="cdot"></span>CRITICAL';}
+  else if(all.includes('warn')){hel.className='chip wa';hel.innerHTML='<span class="cdot"></span>WARNING';}
+  else{hel.className='chip ok';hel.innerHTML='<span class="cdot"></span>HEALTHY';}
+}
+
+// CHARTS
+Chart.defaults.color='#6b9e7a';
+Chart.defaults.font.family="'DM Mono',monospace";
+Chart.defaults.font.size=10;
+const N=20;
+const L=()=>Array.from({length:N},(_,i)=>`-${N-i}s`);
+const sd=(v,n=N,j=.3)=>Array.from({length:n},()=>+(v+(Math.random()-.5)*j).toFixed(2));
+const co=(y0,y1,ex={})=>({responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{display:true,position:'top',labels:{boxWidth:9,padding:11,color:'#2d6a42',font:{size:10}}},tooltip:{backgroundColor:'#fff',borderColor:'rgba(22,163,74,.2)',borderWidth:1,titleColor:'#0f2418',bodyColor:'#2d6a42'}},scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:y0,max:y1,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#6b9e7a'},border:{display:false}}},elements:{point:{radius:0},line:{tension:.45,borderWidth:2}},...ex});
+function gl(id,ds,y0,y1,ex={}){
+  const ctx=document.getElementById(id);if(!ctx)return null;
+  const g=(c1,c2)=>{const gr=ctx.getContext('2d').createLinearGradient(0,0,0,200);gr.addColorStop(0,c1);gr.addColorStop(1,c2);return gr;};
+  return new Chart(ctx,{type:'line',data:{labels:L(),datasets:ds.map(d=>({...d,backgroundColor:d.gc?g(d.gc[0],d.gc[1]):d.backgroundColor||'transparent',fill:true}))},options:co(y0,y1,ex)});
+}
+function gb(id,labs,ds,y0,y1){
+  const ctx=document.getElementById(id);if(!ctx)return null;
+  return new Chart(ctx,{type:'bar',data:{labels:labs,datasets:ds},options:{...co(y0,y1),elements:{}}});
+}
+function gd(id,labs,data,cols){
+  const ctx=document.getElementById(id);if(!ctx)return null;
+  return new Chart(ctx,{type:'doughnut',data:{labels:labs,datasets:[{data,backgroundColor:cols,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:9,padding:12,color:'#2d6a42',font:{size:10}}}}}});
+}
+
+// Init all charts
+const C={};
+const dw=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const mo=['Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+
+// DASHBOARD
+C.dph=gl('d-ph',[{label:'pH',data:sd(6.8,N,.4),borderColor:'#16a34a',gc:['rgba(22,163,74,.2)','rgba(22,163,74,0)']}],4.5,8.5);
+C.dwt=gl('d-wt',[{label:'Water Temp (°C)',data:sd(22.4,N,.8),borderColor:'#0d9488',gc:['rgba(13,148,136,.18)','rgba(13,148,136,0)']}],16,30);
+C.dcl=gl('d-cl',[{label:'Air Temp',data:sd(28.3,N,1.5),borderColor:'#d97706',gc:['rgba(217,119,6,.15)','rgba(217,119,6,0)'],yAxisID:'y'},{label:'Humidity',data:sd(67,N,5),borderColor:'#0284c7',gc:['rgba(2,132,199,.12)','rgba(2,132,199,0)'],yAxisID:'y1'}],15,42,{scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:15,max:42,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#d97706'},border:{display:false}},y1:{min:30,max:100,position:'right',grid:{display:false},ticks:{color:'#0284c7'},border:{display:false}}}});
+// SENSORS
+C.sph=gl('s-ph',[{label:'pH',data:sd(6.8,N,.4),borderColor:'#16a34a',gc:['rgba(22,163,74,.18)','rgba(22,163,74,0)']}],4.5,8.5);
+C.sec=gl('s-ec',[{label:'EC mS/cm',data:sd(2.1,N,.2),borderColor:'#7c3aed',gc:['rgba(124,58,237,.15)','rgba(124,58,237,0)']}],.5,3.5);
+C.swl=gl('s-wl',[{label:'Water Level %',data:sd(73,N,3),borderColor:'#0284c7',gc:['rgba(2,132,199,.15)','rgba(2,132,199,0)']}],20,100);
+C.stm=gl('s-tmp',[{label:'Water Temp',data:sd(22.4,N,.8),borderColor:'#0d9488',gc:['rgba(13,148,136,.15)','rgba(13,148,136,0)'],yAxisID:'y'},{label:'Air Temp',data:sd(28.3,N,1.5),borderColor:'#d97706',gc:['rgba(217,119,6,.1)','rgba(217,119,6,0)'],yAxisID:'y1'}],14,38,{scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:14,max:30,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#0d9488'},border:{display:false}},y1:{min:18,max:38,position:'right',grid:{display:false},ticks:{color:'#d97706'},border:{display:false}}}});
+C.sev=gl('s-env',[{label:'DO₂ mg/L',data:sd(7.4,N,.5),borderColor:'#16a34a',gc:['rgba(22,163,74,.15)','rgba(22,163,74,0)'],yAxisID:'y'},{label:'Humidity %',data:sd(67,N,5),borderColor:'#0284c7',gc:['rgba(2,132,199,.1)','rgba(2,132,199,0)'],yAxisID:'y1'}],3,15,{scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:3,max:14,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#16a34a'},border:{display:false}},y1:{min:30,max:100,position:'right',grid:{display:false},ticks:{color:'#0284c7'},border:{display:false}}}});
+// ANALYTICS
+gb('a-yld',dw,[{label:'Yield (kg)',data:[3.8,4.1,4.0,4.3,4.2,3.9,4.1],backgroundColor:'rgba(22,163,74,.75)',borderRadius:6,borderSkipped:false}],0,6);
+gb('a-nrg',dw,[{label:'Energy (kWh)',data:[12.1,12.8,11.9,13.2,12.4,11.6,12.2],backgroundColor:'rgba(2,132,199,.7)',borderRadius:6,borderSkipped:false}],0,16);
+C.aph=gl('a-ph',[{label:'Avg pH',data:sd(6.7,N,.15),borderColor:'#16a34a',gc:['rgba(22,163,74,.18)','rgba(22,163,74,0)']}],5,8);
+C.apm=gl('a-ppm',[{label:'PPM',data:sd(840,N,40),borderColor:'#7c3aed',gc:['rgba(124,58,237,.15)','rgba(124,58,237,0)']}],600,1200);
+// HYDROPONICS
+C.hyp=gl('hy-ph',[{label:'pH',data:sd(6.8,N,.4),borderColor:'#16a34a',gc:['rgba(22,163,74,.2)','rgba(22,163,74,0)']}],4.5,8.5);
+C.hye=gl('hy-ec',[{label:'EC mS/cm',data:sd(2.1,N,.2),borderColor:'#7c3aed',gc:['rgba(124,58,237,.15)','rgba(124,58,237,0)'],yAxisID:'y'},{label:'PPM÷10',data:sd(84,N,4),borderColor:'#16a34a',gc:['rgba(22,163,74,.08)','rgba(22,163,74,0)'],yAxisID:'y1'}],0,5,{scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:0,max:4,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#7c3aed'},border:{display:false}},y1:{min:50,max:130,position:'right',grid:{display:false},ticks:{color:'#16a34a'},border:{display:false}}}});
+C.hyw=gl('hy-wt',[{label:'Water Temp (°C)',data:sd(22.4,N,.8),borderColor:'#0d9488',gc:['rgba(13,148,136,.18)','rgba(13,148,136,0)']}],16,30);
+// AQUAPONICS
+C.aqd=gl('aq-do2',[{label:'DO₂ mg/L',data:sd(7.4,N,.5),borderColor:'#16a34a',gc:['rgba(22,163,74,.2)','rgba(22,163,74,0)']}],4,12);
+C.aqt=gl('aq-tmp',[{label:'Tank Temp (°C)',data:sd(22.4,N,.8),borderColor:'#0d9488',gc:['rgba(13,148,136,.18)','rgba(13,148,136,0)']}],16,30);
+C.aqc=gl('aq-ch',[{label:'pH',data:sd(6.8,N,.3),borderColor:'#16a34a',gc:['rgba(22,163,74,.15)','rgba(22,163,74,0)'],yAxisID:'y'},{label:'NH₃×10',data:sd(2,N,.4),borderColor:'#d97706',gc:['rgba(217,119,6,.1)','rgba(217,119,6,0)'],yAxisID:'y1'}],3,10,{scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:4,max:9,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#16a34a'},border:{display:false}},y1:{min:0,max:8,position:'right',grid:{display:false},ticks:{color:'#d97706'},border:{display:false}}}});
+// CLIMATE
+C.cat=gl('cl-at2',[{label:'Air Temp (°C)',data:sd(28.3,N,1.5),borderColor:'#d97706',gc:['rgba(217,119,6,.2)','rgba(217,119,6,0)']}],18,36);
+C.chm=gl('cl-hm2',[{label:'Humidity (%RH)',data:sd(67,N,5),borderColor:'#0284c7',gc:['rgba(2,132,199,.18)','rgba(2,132,199,0)']}],30,100);
+C.ccb=gl('cl-cb',[{label:'Air Temp',data:sd(28.3,N,1.5),borderColor:'#d97706',gc:['rgba(217,119,6,.12)','rgba(217,119,6,0)'],yAxisID:'y'},{label:'Humidity',data:sd(67,N,5),borderColor:'#0284c7',gc:['rgba(2,132,199,.1)','rgba(2,132,199,0)'],yAxisID:'y1'}],15,42,{scales:{x:{grid:{color:'rgba(22,163,74,.07)'},ticks:{maxTicksLimit:5,color:'#6b9e7a'},border:{display:false}},y:{min:15,max:38,grid:{color:'rgba(22,163,74,.07)'},ticks:{color:'#d97706'},border:{display:false}},y1:{min:30,max:100,position:'right',grid:{display:false},ticks:{color:'#0284c7'},border:{display:false}}}});
+// LIGHTING
+C.lpp=gl('lt-pf',[{label:'PPFD μmol/m²/s',data:sd(480,N,20),borderColor:'#d97706',gc:['rgba(217,119,6,.18)','rgba(217,119,6,0)']}],300,700);
+gb('lt-en',dw,[{label:'kWh (Lighting)',data:[4.2,4.5,4.1,4.8,4.6,4.3,4.4],backgroundColor:'rgba(217,119,6,.7)',borderRadius:6,borderSkipped:false}],0,7);
+// ALERTS
+gb('al-fr',dw,[{label:'Critical',data:[0,1,0,0,0,0,0],backgroundColor:'rgba(220,38,38,.75)',borderRadius:4,borderSkipped:false},{label:'Warning',data:[1,1,2,1,2,0,1],backgroundColor:'rgba(217,119,6,.7)',borderRadius:4,borderSkipped:false},{label:'Info',data:[2,1,1,2,1,1,1],backgroundColor:'rgba(22,163,74,.6)',borderRadius:4,borderSkipped:false}],0,5,{});
+gd('al-dn',['Water Level','pH Drift','Pump','Temperature','Nutrient'],[4,3,2,2,1],['#dc2626','#d97706','#0284c7','#0d9488','#7c3aed']);
+// REPORTS
+gb('rp-yl',mo,[{label:'Yield (kg)',data:[88,94,101,97,106,108,110,112],backgroundColor:'rgba(22,163,74,.75)',borderRadius:6,borderSkipped:false}],60,130);
+gb('rp-en',mo,[{label:'Energy (kWh)',data:[380,365,372,355,368,350,345,342],backgroundColor:'rgba(2,132,199,.7)',borderRadius:6,borderSkipped:false}],300,420);
+
+// LIVE UPDATES
+function push(ch,v,di=0){if(!ch)return;const d=ch.data.datasets[di].data;d.push(+v.toFixed(3));if(d.length>N)d.shift();const l=ch.data.labels;l.push('');if(l.length>N)l.shift();}
+function updCharts(){
+  [C.dph,C.sph,C.hyp,C.aph].forEach(c=>push(c,S.ph.v));
+  [C.dwt,C.hyw,C.aqt].forEach(c=>push(c,S.wtemp.v));
+  push(C.dcl,S.atemp.v,0);push(C.dcl,S.hum.v,1);
+  push(C.sec,S.ec.v);push(C.swl,S.wlvl.v);
+  push(C.stm,S.wtemp.v,0);push(C.stm,S.atemp.v,1);
+  push(C.sev,S.do2.v,0);push(C.sev,S.hum.v,1);
+  push(C.hye,S.ec.v,0);push(C.hye,S.ppm.v/10,1);
+  push(C.aqd,S.do2.v);push(C.aqc,S.ph.v,0);
+  push(C.cat,S.atemp.v);push(C.chm,S.hum.v);
+  push(C.ccb,S.atemp.v,0);push(C.ccb,S.hum.v,1);
+  push(C.lpp,480+(Math.random()-.5)*25);
+  push(C.apm,S.ppm.v);
+  Object.values(C).forEach(c=>{if(c)c.update('none');});
+}
+
+// NOTIFICATIONS
+const notifs=[
+  {t:'danger',ic:'🔴',ti:'Low Water Level Alert',msg:'Tank at 73% — refill recommended within 48h',tm:'2 min ago'},
+  {t:'danger',ic:'🔴',ti:'High pH Alert',msg:'pH spiked to 7.4 — auto-dosing activated',tm:'8 min ago'},
+  {t:'warn',ic:'⚠️',ti:'Pump Pressure Drop',msg:'Main pump 10% below nominal — monitor closely',tm:'21 min ago'},
+  {t:'success',ic:'✅',ti:'Nutrient Level Restored',msg:'EC back in optimal range after auto-dose',tm:'34 min ago'},
+  {t:'info',ic:'ℹ️',ti:'Scheduled Maintenance',msg:'Grow light ballast service due in 3 days',tm:'1 hr ago'},
+  {t:'success',ic:'✅',ti:'DO₂ Optimal',msg:'Fish tank dissolved oxygen holding at 7.4 mg/L',tm:'2 hr ago'},
+];
+function renderNotifs(){
+  const h=notifs.map(n=>`<div class="ni-item ${n.t}"><div class="ni-ic">${n.ic}</div><div class="nb"><div class="ntit">${n.ti}</div><div class="nmsg">${n.msg}</div></div><div class="ntm">${n.tm}</div></div>`).join('');
+  ['d-notif','al-list'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=h;});
+}
+renderNotifs();
+const fresh=[{t:'info',ic:'📊',ti:'pH Trend Stable',msg:'pH holding at 6.8 for 15 min',tm:'just now'},{t:'success',ic:'✅',ti:'Water Temp Normal',msg:'Temperature stable 22–23°C',tm:'just now'},{t:'warn',ic:'⚡',ti:'EC Rising',msg:'Conductivity nearing upper threshold',tm:'just now'}];
+let ni=0;
+setInterval(()=>{if(Math.random()<.3){notifs.unshift({...fresh[ni++%fresh.length]});if(notifs.length>8)notifs.pop();renderNotifs();}},14000);
+
+// CONTROLS
+const cm={pump:{on:'RUNNING · 3.2 L/min',off:'STOPPED'},lights:{on:'ON · 18h · 480W',off:'OFF · Scheduled 06:00'},nutrient:{on:'DOSING · 15ml/hr',off:'PAUSED'},circ:{on:'ACTIVE · 1200 RPM',off:'STOPPED'},fan:{on:'ON · LOW speed',off:'OFF'}};
+function tc(cb,n){const e=document.getElementById('st-'+n);if(e)e.textContent=cb.checked?cm[n].on:cm[n].off;}
+
+// MAIN LOOP
+setInterval(()=>{updSensors();updCharts();},3500);
+updSensors();
+</script>
+</body>
+</html>
